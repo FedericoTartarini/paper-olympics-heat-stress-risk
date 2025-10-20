@@ -10,7 +10,6 @@ import seaborn as sns
 from pythermalcomfort.models import phs
 from pythermalcomfort.utilities import mean_radiant_tmp
 
-df_risk_parquet = pd.read_parquet("risk_reference_table.parquet")
 
 sports_dict = {
     "abseiling": {
@@ -456,9 +455,14 @@ class Sport:
 
 
 def get_sports_heat_stress_curves(
-    tdb, tg, rh, v=0.8, clo=None, met=None, sport_id="soccer", sweat_loss_g=850
+    tdb, rh, v=0.8, tg=None, tr=None, clo=None, met=None, sport_id="soccer", sweat_loss_g=850
 ):
     sport_dict = sports_dict[sport_id]
+
+    if tg is not None and tr is None:
+        tr = mean_radiant_tmp(tdb=tdb, tg=tg, v=v)
+    if tg is None and tr is None:
+        raise ValueError("Either tg or tr must be provided.")
 
     max_t_low = 34.5
     max_t_medium = 39
@@ -483,8 +487,6 @@ def get_sports_heat_stress_curves(
         v = sport_dict["wind_low"]
     elif v > sport_dict["wind_high"]:
         v = sport_dict["wind_high"]
-
-    tr = mean_radiant_tmp(tdb=tdb, tg=tg, v=v)
 
     def calculate_threshold_water_loss(x):
         return (
@@ -582,6 +584,8 @@ def get_sports_heat_stress_curves(
 
 
 if __name__ == "__main__":
+    df_risk_parquet = pd.read_parquet("risk_reference_table.parquet")
+
     # get the lowest wind speed across all sports
     min_wind_speed = max(
         [sports_dict[sport]["wind_low"] for sport in sports_dict.keys()]
@@ -594,8 +598,7 @@ if __name__ == "__main__":
 
     for sport in sports_dict.keys():
         # sport = "softball"
-        tg_delta = 10  # tg - tdb
-        sweat_loss_g = 825  # 825 g per hour
+        tg_delta = 4  # tg - tdb
         v = sports_dict[sport]["wind_low"]
 
         results = []
@@ -604,7 +607,7 @@ if __name__ == "__main__":
             print(f"Calculating for {sport=} {t=} {rh=} {v=}")
             tg = tg_delta + t
             risk = get_sports_heat_stress_curves(
-                tdb=t, tg=tg, rh=rh, v=v, sport_id=sport, sweat_loss_g=sweat_loss_g
+                tdb=t, tg=tg, rh=rh, v=v, sport_id=sport
             )
             results.append([t, rh, tg_delta, v, risk])
 

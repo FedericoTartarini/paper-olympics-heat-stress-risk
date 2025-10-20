@@ -8,10 +8,12 @@ matplotlib = "*"
 numpy = "*"
 pandas = "*"
 scipy = "*"
-seaborn = "*"
 pythermalcomfort = "*"
 pyarrow = "*"
 fastparquet = "*"
+pvlib = "*"
+ruff = "*"
+seaborn = "*"
 
 [dev-packages]
 
