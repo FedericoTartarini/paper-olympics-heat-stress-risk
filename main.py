@@ -1,7 +1,10 @@
+import time
 from itertools import product
 
+import numpy as np
 import pandas as pd
 import seaborn as sns
+from icecream import ic
 from matplotlib import pyplot as plt
 from cachetools import cached, TTLCache
 
@@ -12,7 +15,7 @@ from risk_calculation.new_risk_eq_v2 import (
 )
 
 
-@cached(cache=TTLCache(maxsize=1000, ttl=600))
+@cached(cache=TTLCache(maxsize=2000, ttl=3600))
 def calculate_risk_value(
     lat: float,
     lon: float,
@@ -22,6 +25,7 @@ def calculate_risk_value(
     rh: float,
     sport_id: str,
     wind: str = "low",
+    print_output: bool = False,
 ):
     """
     Calculate the heat-stress risk value for a sport at a specific location and local time.
@@ -81,7 +85,8 @@ def calculate_risk_value(
     2.0
     """
     delta_mrt = calculate_mrt(lat=lat, lon=lon, tz=tz, time_stamp=time_stamp)
-    print(f"MRT: {delta_mrt + tdb:.2f} °C")
+    if print_output:
+        print(f"MRT: {delta_mrt + tdb:.2f} °C")
     wind_speed = sports_dict[sport_id][f"wind_{wind}"]
     # print(f"tg =10 equal to MRT of {mean_radiant_tmp(tdb, 10, wind_speed):.2f} °C")
     risk = get_sports_heat_stress_curves(
@@ -148,22 +153,62 @@ def check_calculate_risk_value_grid(
     plt.show()
 
 
-if __name__ == "__main__":
-    check_calculate_risk_value(
-        lat=-33.8688,
-        lon=151.2093,
-        tz="Australia/Sydney",
-        time_stamp="2024-02-01 15:00:00",
-        tdb=30.0,
-        rh=60.0,
-        sport_id="soccer",
-    )
+def time_function(runs: int = 1_000):
+    # Warm-up (loads modules, caches, etc.)
+    try:
+        calculate_risk_value(
+            lat=-33.8688,
+            lon=151.2093,
+            tz="Australia/Sydney",
+            time_stamp="2024-02-01 15:00:00",
+            tdb=30.0,
+            rh=60.0,
+            sport_id="soccer",
+        )
+    except Exception as e:
+        ic(f"Warm-up call failed: {e}")
 
-    check_calculate_risk_value_grid(
-        lat=-33.8688,
-        lon=151.2093,
-        tz="Australia/Sydney",
-        time_stamp="2024-02-01 12:00:00",
-        sport_id="basketball",
-        wind="high",  # "high", "med", or "low"
-    )
+    start = time.perf_counter()
+    for _ in range(runs):
+        calculate_risk_value(
+            lat=round(np.random.uniform(-34, -33), 4),
+            lon=151.2093,
+            tz="Australia/Sydney",
+            time_stamp="2024-02-01 15:00:00",
+            tdb=30.0,
+            rh=60.0,
+            sport_id="soccer",
+        )
+    end = time.perf_counter()
+
+    total = end - start
+    total_time_s = round(total, 2)
+    # ic(f"Ran calculate_mrt {runs} times. Total time: {total:.4f} s. Avg per call: {avg*1000:.6f} ms.")
+    ic(total_time_s)
+
+    # expected run time 1_000_000_000 iterations
+    tot_days_billion = round(total_time_s * 1_000_000_000 / runs / 3600 / 24, 0)
+    ic(tot_days_billion)
+
+
+if __name__ == "__main__":
+    time_function(100)
+
+    # check_calculate_risk_value(
+    #     lat=-33.8688,
+    #     lon=151.2093,
+    #     tz="Australia/Sydney",
+    #     time_stamp="2024-02-01 15:00:00",
+    #     tdb=30.0,
+    #     rh=60.0,
+    #     sport_id="soccer",
+    # )
+    #
+    # check_calculate_risk_value_grid(
+    #     lat=-33.8688,
+    #     lon=151.2093,
+    #     tz="Australia/Sydney",
+    #     time_stamp="2024-02-01 12:00:00",
+    #     sport_id="basketball",
+    #     wind="high",  # "high", "med", or "low"
+    # )

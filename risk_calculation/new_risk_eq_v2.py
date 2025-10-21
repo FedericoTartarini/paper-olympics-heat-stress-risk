@@ -13,7 +13,7 @@ from pythermalcomfort.utilities import mean_radiant_tmp
 from risk_calculation.sma_code_v2 import sports_dict, calculate_comfort_indices_v2
 
 
-@cached(cache=TTLCache(maxsize=1000, ttl=600))
+@cached(cache=TTLCache(maxsize=2000, ttl=3600))
 def get_sports_heat_stress_curves(
     tdb,
     rh,
