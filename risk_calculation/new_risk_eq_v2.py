@@ -222,7 +222,6 @@ def compare_sma_v2_with_new_risk_eq():
 
 
 if __name__ == "__main__":
-
     compare_sma_v2_with_new_risk_eq()
 
     # # get the lowest wind speed across all sports
