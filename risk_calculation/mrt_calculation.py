@@ -7,6 +7,7 @@ from cachetools import cached, TTLCache
 
 ic.configureOutput(includeContext=True)
 
+
 @cached(cache=TTLCache(maxsize=1000, ttl=600))
 def calculate_mrt(
     lat: float, lon: float, tz: str, time_stamp: str, print_output: bool = False
@@ -62,7 +63,6 @@ def calculate_mrt(
 
 
 def test_few_locations():
-
     lat = 52.5200
     lon = 13.4050
     tz = "Europe/Berlin"
@@ -112,13 +112,17 @@ def time_function(runs: int = 1_000):
 
     # Warm-up (loads modules, caches, etc.)
     try:
-        calculate_mrt(lat=lat, lon=lon, tz=tz, time_stamp=time_stamp, print_output=False)
+        calculate_mrt(
+            lat=lat, lon=lon, tz=tz, time_stamp=time_stamp, print_output=False
+        )
     except Exception as e:
         ic(f"Warm-up call failed: {e}")
 
     start = time.perf_counter()
     for _ in range(runs):
-        calculate_mrt(lat=lat, lon=lon, tz=tz, time_stamp=time_stamp, print_output=False)
+        calculate_mrt(
+            lat=lat, lon=lon, tz=tz, time_stamp=time_stamp, print_output=False
+        )
     end = time.perf_counter()
 
     total = end - start
