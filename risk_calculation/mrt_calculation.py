@@ -13,15 +13,49 @@ def calculate_mrt(
     lat: float, lon: float, tz: str, time_stamp: str, print_output: bool = False
 ) -> float:
     """
-    Calculate Mean Radiant Temperature (MRT) based on location and time using pvlib and pythermalcomfort.
+    Calculate Mean Radiant Temperature (MRT) difference for a single local datetime.
 
-    :param lat: Latitude in decimal degrees (positive for north, negative for south).
-    :param lon: Longitude in decimal degrees (positive for east, negative for west).
-    :param tz: Timezone name compatible with `pytz`/`zoneinfo`, e.g. `Europe/Berlin`.
-    :param time_stamp: Local date/time string parseable by `pandas`, e.g. `2024-06-01 15:00:00`.
-    :param print_output: If `True`, prints debug output using `icecream.ic` (default: `False`).
+    Uses pvlib to compute solar geometry and clear-sky irradiance and pythermalcomfort.models.solar_gain
+    to estimate the mean radiant temperature difference (results.delta_mrt).
 
-    :return: `delta_mrt` (float) — Mean Radiant Temperature difference in °C. Returns `0` if sun is below horizon.
+    Parameters
+    ----------
+    lat : float
+        Latitude in decimal degrees (north positive, south negative).
+    lon : float
+        Longitude in decimal degrees (east positive, west negative).
+    tz : str
+        Time zone string compatible with zoneinfo/pytz (e.g. "Europe/Berlin").
+    time_stamp : str
+        Local date/time string parseable by pandas (e.g. "2024-06-01 15:00:00").
+        A single timestamp is expected; the function constructs a single-period hourly DatetimeIndex.
+    print_output : bool, optional
+        If True, prints human-readable debug output via icecream.ic (default: False).
+
+    Returns
+    -------
+    float
+        The computed mean radiant temperature difference (delta_mrt) in degrees Celsius.
+        If the sun is below the horizon at the requested time/location the function returns 0.
+
+    Raises
+    ------
+    ValueError
+        If provided latitude/longitude are outside reasonable bounds or time_stamp cannot be parsed.
+    Exception
+        Errors raised by pvlib, pandas, or pythermalcomfort are propagated to the caller.
+
+    Notes
+    -----
+    - Results are cached using cachetools.cached with TTLCache(maxsize=1000, ttl=600) to avoid repeated expensive calculations.
+    - The function uses clear-sky (get_clearsky) DNI for direct radiation; adjust parameters if measured irradiance is desired.
+    - The function assumes a standing posture and default radiative parameters (asw, floor_reflectance, etc.).
+    - The function performs a single-hour calculation (freq="h", periods=1).
+
+    Examples
+    --------
+    >>> calculate_mrt(52.52, 13.405, "Europe/Berlin", "2024-06-01 15:00:00")
+    5.23
     """
     # Define the location
     site_location = location.Location(lat, lon, tz=tz, name=tz)
@@ -102,7 +136,32 @@ def test_few_locations():
 
 def time_function(runs: int = 1_000):
     """
-    Time the calculate_mrt function over multiple runs to assess performance.
+    Measure the execution time of calculate_mrt for repeated invocations.
+
+    Performs one warm-up call (to populate caches and perform lazy initialization), then
+    invokes calculate_mrt `runs` times using fixed test parameters and reports elapsed time
+    through icecream.ic.
+
+    Parameters
+    ----------
+    runs : int, optional
+        Number of times to call calculate_mrt (default: 1000). Large values will produce a longer measurement.
+
+    Returns
+    -------
+    None
+        Prints timing information (total elapsed time in seconds, rounded) via icecream.ic and returns None.
+
+    Notes
+    -----
+    - This helper is intended for informal benchmarking. For rigorous profiling, use timeit or a profiler.
+    - The current implementation uses hard-coded location/time values inside the function; modify the function
+      if you want to benchmark different inputs or make it return measured values programmatically.
+
+    Example
+    -------
+    >>> time_function(runs=10000)
+    # prints the rounded total execution time in seconds via ic(...)
     """
     # time this function to see how long it takes to run 100_000 times
     lat = 52.5200
