@@ -152,73 +152,69 @@ def get_sports_heat_stress_curves(
 
 
 def compare_sma_v2_with_new_risk_eq():
-    for sport in sports_dict.keys():
-        # sport = "softball"
-        tg_delta = 4  # tg - tdb
-        v = sports_dict[sport]["wind_low"]
+    # for sport in sports_dict.keys():
+    sport = "soccer"
+    tg_delta = 8  # tg - tdb
+    v = sports_dict[sport]["wind_low"]
 
-        results = []
+    results = []
 
-        for t, rh in product(range(23, 50, 2), range(0, 101, 5)):
-            # print(f"Calculating for {sport=} {t=} {rh=} {v=}")
-            tg = tg_delta + t
-            risk = get_sports_heat_stress_curves(
-                tdb=t, tg=tg, rh=rh, v=v, sport_id=sport
-            )
-            results.append([t, rh, tg_delta, v, risk])
+    for t, rh in product(range(23, 50, 2), range(0, 101, 5)):
+        # print(f"Calculating for {sport=} {t=} {rh=} {v=}")
+        tg = tg_delta + t
+        risk = get_sports_heat_stress_curves(tdb=t, tg=tg, rh=rh, v=v, sport_id=sport)
+        results.append([t, rh, tg_delta, v, risk])
 
-        df_new = pd.DataFrame(results, columns=["tdb", "rh", "tg", "v", "risk"])
+    df_new = pd.DataFrame(results, columns=["tdb", "rh", "tg", "v", "risk"])
 
-        df_sma = calculate_comfort_indices_v2(data_for=df_new.copy(), sport_id=sport)
+    df_sma = calculate_comfort_indices_v2(data_for=df_new.copy(), sport_id=sport)
 
-        # plot side by side heatmaps
-        f, axs = plt.subplots(3, 1, figsize=(7, 7), sharex=True, sharey=True)
+    # plot side by side heatmaps
+    f, axs = plt.subplots(3, 1, figsize=(7, 7), sharex=True, sharey=True)
 
-        df_pivot = df_new.pivot(index="rh", columns="tdb", values="risk")
-        df_pivot.sort_index(ascending=False, inplace=True)
-        sns.heatmap(df_pivot, annot=False, cmap="viridis", ax=axs[0], vmin=0, vmax=3)
+    df_pivot = df_new.pivot(index="rh", columns="tdb", values="risk")
+    df_pivot.sort_index(ascending=False, inplace=True)
+    sns.heatmap(df_pivot, annot=False, cmap="viridis", ax=axs[0], vmin=0, vmax=3)
 
-        df_pivot_sma = df_sma.pivot(index="rh", columns="tdb", values="risk_value")
-        df_pivot_sma.sort_index(ascending=False, inplace=True)
-        sns.heatmap(
-            df_pivot_sma, annot=False, cmap="viridis", ax=axs[1], vmin=0, vmax=3
-        )
+    df_pivot_sma = df_sma.pivot(index="rh", columns="tdb", values="risk_value")
+    df_pivot_sma.sort_index(ascending=False, inplace=True)
+    sns.heatmap(df_pivot_sma, annot=False, cmap="viridis", ax=axs[1], vmin=0, vmax=3)
 
-        df_new["diff"] = df_sma["risk_value"] - df_new["risk"]
-        df_diff_pivot = df_new.pivot(index="rh", columns="tdb", values="diff")
-        df_diff_pivot.sort_index(ascending=False, inplace=True)
-        sns.heatmap(
-            df_diff_pivot,
-            annot=False,
-            center=0,
-            cmap="coolwarm",
-            ax=axs[2],
-            vmin=-3,
-            vmax=3,
-        )
+    df_new["diff"] = df_sma["risk_value"] - df_new["risk"]
+    df_diff_pivot = df_new.pivot(index="rh", columns="tdb", values="diff")
+    df_diff_pivot.sort_index(ascending=False, inplace=True)
+    sns.heatmap(
+        df_diff_pivot,
+        annot=False,
+        center=0,
+        cmap="coolwarm",
+        ax=axs[2],
+        vmin=-3,
+        vmax=3,
+    )
 
-        axs[0].set_title(
-            f"{sports_dict[sport]['sport']} - Heat stress risk (PHS model)", fontsize=14
-        )
-        axs[1].set_title(
-            f"{sports_dict[sport]['sport']} - Heat stress risk (SMA model)", fontsize=14
-        )
-        axs[2].set_title(
-            f"{sports_dict[sport]['sport']} - Difference in risk levels (SMA -PHS)",
-            fontsize=14,
-        )
-        axs[0].set_ylabel("Relative Humidity (%)", fontsize=12)
-        axs[1].set_ylabel("Relative Humidity (%)", fontsize=12)
-        axs[2].set_ylabel("Relative Humidity (%)", fontsize=12)
-        axs[0].set_xlabel("Air Temperature (°C)", fontsize=12)
-        axs[1].set_xlabel("Air Temperature (°C)", fontsize=12)
-        axs[2].set_xlabel("Air Temperature (°C)", fontsize=12)
-        plt.tight_layout()
-        plt.savefig(
-            f"./figures/{sport}_v={v}_tg_delta={tg_delta}.png",
-            dpi=300,
-        )
-        plt.show()
+    axs[0].set_title(
+        f"{sports_dict[sport]['sport']} - Heat stress risk (PHS model)", fontsize=14
+    )
+    axs[1].set_title(
+        f"{sports_dict[sport]['sport']} - Heat stress risk (SMA model)", fontsize=14
+    )
+    axs[2].set_title(
+        f"{sports_dict[sport]['sport']} - Difference in risk levels (SMA -PHS)",
+        fontsize=14,
+    )
+    axs[0].set_ylabel("Relative Humidity (%)", fontsize=12)
+    axs[1].set_ylabel("Relative Humidity (%)", fontsize=12)
+    axs[2].set_ylabel("Relative Humidity (%)", fontsize=12)
+    axs[0].set_xlabel("Air Temperature (°C)", fontsize=12)
+    axs[1].set_xlabel("Air Temperature (°C)", fontsize=12)
+    axs[2].set_xlabel("Air Temperature (°C)", fontsize=12)
+    plt.tight_layout()
+    plt.savefig(
+        f"./figures/{sport}_v={v}_tg_delta={tg_delta}.png",
+        dpi=300,
+    )
+    plt.show()
 
 
 if __name__ == "__main__":
