@@ -6,19 +6,27 @@ from matplotlib import pyplot as plt
 from pythermalcomfort.utilities import mean_radiant_tmp
 
 from risk_calculation.mrt_calculation import calculate_mrt
-from risk_calculation.comparison_old_new import get_sports_heat_stress_curves, sports_dict
+from risk_calculation.new_risk_eq_v2 import (
+    get_sports_heat_stress_curves,
+    sports_dict,
+)
 
-def calculate_risk_value(lat: float, lon: float, tz: str, time_stamp: str, tdb: float, rh: float, sport_id: str):
+
+def calculate_risk_value(
+    lat: float,
+    lon: float,
+    tz: str,
+    time_stamp: str,
+    tdb: float,
+    rh: float,
+    sport_id: str,
+):
     delta_mrt = calculate_mrt(lat=lat, lon=lon, tz=tz, time_stamp=time_stamp)
-    print(f"MRT: {delta_mrt+tdb:.2f} °C")
+    print(f"MRT: {delta_mrt + tdb:.2f} °C")
     wind_speed = sports_dict[sport_id]["wind_low"]
     print(f"tg =10 equal to MRT of {mean_radiant_tmp(tdb, 10, wind_speed):.2f} °C")
     risk = get_sports_heat_stress_curves(
-        tdb=tdb,
-        rh=rh,
-        tr=tdb+delta_mrt,
-        sport_id=sport_id,
-        v=wind_speed
+        tdb=tdb, rh=rh, tr=tdb + delta_mrt, sport_id=sport_id, v=wind_speed
     )
 
     return risk
@@ -30,16 +38,31 @@ if __name__ == "__main__":
     tz = "Australia/Sydney"
     time_stamp = "2024-02-01 15:00:00"
     tdb = 37.0  # Dry-bulb temperature in °C
-    rh = 50.0   # Relative humidity in %
+    rh = 50.0  # Relative humidity in %
     sport_id = "running"
 
-    risk_value = calculate_risk_value(lat=lat, lon=lon, tz=tz, time_stamp=time_stamp, tdb=tdb, rh=rh, sport_id=sport_id)
+    risk_value = calculate_risk_value(
+        lat=lat,
+        lon=lon,
+        tz=tz,
+        time_stamp=time_stamp,
+        tdb=tdb,
+        rh=rh,
+        sport_id=sport_id,
+    )
     print(f"Calculated risk value: {risk_value}")
-
 
     results = []
     for t, rh in product(range(23, 50, 2), range(0, 101, 5)):
-        risk_value = calculate_risk_value(lat=lat, lon=lon, tz=tz, time_stamp=time_stamp, tdb=t, rh=rh, sport_id=sport_id)
+        risk_value = calculate_risk_value(
+            lat=lat,
+            lon=lon,
+            tz=tz,
+            time_stamp=time_stamp,
+            tdb=t,
+            rh=rh,
+            sport_id=sport_id,
+        )
         results.append([t, rh, risk_value])
 
     df_new = pd.DataFrame(results, columns=["tdb", "rh", "risk"])
@@ -52,5 +75,3 @@ if __name__ == "__main__":
     ax.set_xlabel("Dry-Bulb Temperature (°C)")
     ax.set_ylabel("Relative Humidity (%)")
     plt.show()
-
-
