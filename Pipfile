@@ -15,6 +15,7 @@ pvlib = "*"
 ruff = "*"
 seaborn = "*"
 icecream = "*"
+cachetools = "*"
 
 [dev-packages]
 
