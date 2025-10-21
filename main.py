@@ -84,7 +84,13 @@ def calculate_risk_value(
     ...                      tdb=30.0, rh=60.0, sport_id="soccer", wind="low")
     2.0
     """
-    delta_mrt = calculate_mrt(lat=lat, lon=lon, tz=tz, time_stamp=time_stamp)
+    # Round lat/lon to 2 decimal places for caching (~1.11km resolution)
+    lat_rounded = round(lat, 2)
+    lon_rounded = round(lon, 2)
+
+    delta_mrt = calculate_mrt(
+        lat=lat_rounded, lon=lon_rounded, tz=tz, time_stamp=time_stamp
+    )
     if print_output:
         print(f"MRT: {delta_mrt + tdb:.2f} °C")
     wind_speed = sports_dict[sport_id][f"wind_{wind}"]
@@ -171,7 +177,7 @@ def time_function(runs: int = 1_000):
     start = time.perf_counter()
     for _ in range(runs):
         calculate_risk_value(
-            lat=round(np.random.uniform(-34, -33), 4),
+            lat=np.random.uniform(-34, -33),
             lon=151.2093,
             tz="Australia/Sydney",
             time_stamp="2024-02-01 15:00:00",
