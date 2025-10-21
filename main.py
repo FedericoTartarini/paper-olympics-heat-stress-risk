@@ -134,7 +134,7 @@ def check_calculate_risk_value_grid(
     wind: str = "low",
 ):
     results = []
-    for t, rh in product(range(23, 50, 2), range(0, 101, 5)):
+    for t, rh in product(np.arange(25, 40, 0.5), range(0, 101, 1)):
         risk_value = calculate_risk_value(
             lat=lat,
             lon=lon,
@@ -177,7 +177,7 @@ def time_function(runs: int = 1_000):
     start = time.perf_counter()
     for _ in range(runs):
         calculate_risk_value(
-            lat=np.random.uniform(-34, -33),
+            lat=-33.8688,
             lon=151.2093,
             tz="Australia/Sydney",
             time_stamp="2024-02-01 15:00:00",
@@ -200,21 +200,21 @@ def time_function(runs: int = 1_000):
 if __name__ == "__main__":
     time_function(100)
 
-    # check_calculate_risk_value(
-    #     lat=-33.8688,
-    #     lon=151.2093,
-    #     tz="Australia/Sydney",
-    #     time_stamp="2024-02-01 15:00:00",
-    #     tdb=30.0,
-    #     rh=60.0,
-    #     sport_id="soccer",
-    # )
-    #
-    # check_calculate_risk_value_grid(
-    #     lat=-33.8688,
-    #     lon=151.2093,
-    #     tz="Australia/Sydney",
-    #     time_stamp="2024-02-01 12:00:00",
-    #     sport_id="basketball",
-    #     wind="high",  # "high", "med", or "low"
-    # )
+    check_calculate_risk_value(
+        lat=-33.8688,
+        lon=151.2093,
+        tz="Australia/Sydney",
+        time_stamp="2024-02-01 15:00:00",
+        tdb=30.0,
+        rh=60.0,
+        sport_id="soccer",
+    )
+
+    check_calculate_risk_value_grid(
+        lat=-33.8688,
+        lon=151.2093,
+        tz="Australia/Sydney",
+        time_stamp="2024-02-01 12:00:00",
+        sport_id="basketball",
+        wind="high",  # "high", "med", or "low"
+    )
