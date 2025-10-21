@@ -2,8 +2,12 @@ from icecream import ic
 from pythermalcomfort.models import solar_gain
 from pvlib import location
 import pandas as pd
+import time
+from cachetools import cached, TTLCache
 
+ic.configureOutput(includeContext=True)
 
+@cached(cache=TTLCache(maxsize=1000, ttl=600))
 def calculate_mrt(
     lat: float, lon: float, tz: str, time_stamp: str, print_output: bool = False
 ) -> float:
@@ -57,7 +61,8 @@ def calculate_mrt(
     return results.delta_mrt
 
 
-if __name__ == "__main__":
+def test_few_locations():
+
     lat = 52.5200
     lon = 13.4050
     tz = "Europe/Berlin"
@@ -93,3 +98,36 @@ if __name__ == "__main__":
     calculate_mrt(lat=lat, lon=lon, tz=tz, time_stamp=time_stamp)
     time_stamp = "2024-02-01 15:00:00"
     calculate_mrt(lat=lat, lon=lon, tz=tz, time_stamp=time_stamp)
+
+
+def time_function(runs: int = 1_000):
+    """
+    Time the calculate_mrt function over multiple runs to assess performance.
+    """
+    # time this function to see how long it takes to run 100_000 times
+    lat = 52.5200
+    lon = 13.4050
+    tz = "Europe/Berlin"
+    time_stamp = "2024-06-01 15:00:00"
+
+    # Warm-up (loads modules, caches, etc.)
+    try:
+        calculate_mrt(lat=lat, lon=lon, tz=tz, time_stamp=time_stamp, print_output=False)
+    except Exception as e:
+        ic(f"Warm-up call failed: {e}")
+
+    start = time.perf_counter()
+    for _ in range(runs):
+        calculate_mrt(lat=lat, lon=lon, tz=tz, time_stamp=time_stamp, print_output=False)
+    end = time.perf_counter()
+
+    total = end - start
+    avg = total / runs if runs else float("nan")
+    total_time_s = round(total, 2)
+    # ic(f"Ran calculate_mrt {runs} times. Total time: {total:.4f} s. Avg per call: {avg*1000:.6f} ms.")
+    ic(total_time_s)
+
+
+if __name__ == "__main__":
+    # test_few_locations()
+    time_function(runs=1_000_000)
