@@ -78,15 +78,19 @@ def get_sports_heat_stress_curves(
             - sweat_loss_g
         )
 
+    t_medium = np.nan
     for min_t, max_t in [(0, 36), (20, 50)]:
         try:
             t_medium = scipy.optimize.brentq(
                 calculate_threshold_water_loss, min_t, max_t
             )
             break
-        except ValueError as e:
-            print(f"Water loss - Brentq failed for {tdb=} and {rh=}: {e}")
-            t_medium = max_t_low
+        except ValueError:
+            pass
+            # print(
+            #     f"Water loss - Brentq failed for {tdb=} {rh=} {tr=} {v=} {sport_id=}: {e}"
+            # )
+            # t_medium = max_t_low
 
     def calculate_threshold_core(x):
         return (
@@ -107,13 +111,24 @@ def get_sports_heat_stress_curves(
             - t_cr_extreme
         )
 
+    t_extreme = np.nan
     for min_t, max_t in [(0, 36), (20, 50)]:
         try:
             t_extreme = scipy.optimize.brentq(calculate_threshold_core, min_t, max_t)
             break
-        except ValueError as e:
-            print(f"Core temp - Brentq failed for {tdb=} and {rh=}: {e}")
-            t_extreme = max_t_high
+        except ValueError:
+            pass
+            # print(
+            #     f"Core temp - Brentq failed for {tdb=} {rh=} {tr=} {v=} {sport_id=}: {e}"
+            # )
+            # t_extreme = max_t_high
+
+    if np.isnan(t_extreme):
+        print(f"Extreme temp - failed for {tdb=} {rh=} {tr=} {v=} {sport_id=}")
+        raise ValueError
+    if np.isnan(t_medium):
+        print(f"Medium temp - failed for {tdb=} {rh=} {tr=} {v=} {sport_id=}")
+        raise ValueError
 
     t_high = (
         (t_medium + t_extreme) / 2
@@ -251,8 +266,10 @@ def plot_one_sport_heat_stress_curve(sport="rowing"):
 
 
 if __name__ == "__main__":
+    risk = get_sports_heat_stress_curves(tdb=39, tr=39, rh=50, sport_id="basketball")
+    print(risk)
     # compare_sma_v2_with_new_risk_eq()
-    plot_one_sport_heat_stress_curve(sport="rowing")
+    # plot_one_sport_heat_stress_curve(sport="rowing")
 
     # # get the lowest wind speed across all sports
     # min_wind_speed = max(
