@@ -134,7 +134,7 @@ def check_calculate_risk_value_grid(
     wind: str = "low",
 ):
     results = []
-    for t, rh in product(np.arange(25, 40, 0.5), range(0, 101, 1)):
+    for t, rh in product(np.arange(25, 45, 1), range(0, 101, 2)):
         risk_value = calculate_risk_value(
             lat=lat,
             lon=lon,
@@ -210,11 +210,13 @@ if __name__ == "__main__":
         sport_id="soccer",
     )
 
-    check_calculate_risk_value_grid(
-        lat=-33.8688,
-        lon=151.2093,
-        tz="Australia/Sydney",
-        time_stamp="2024-02-01 12:00:00",
-        sport_id="basketball",
-        wind="high",  # "high", "med", or "low"
-    )
+    for sport in sports_dict.keys():
+        print(f"--- Sport: {sport} ---")
+        check_calculate_risk_value_grid(
+            lat=-33.8688,
+            lon=151.2093,
+            tz="Australia/Sydney",
+            time_stamp="2024-02-01 12:00:00",
+            sport_id=sport,
+            wind="high",  # "high", "med", or "low"
+        )
