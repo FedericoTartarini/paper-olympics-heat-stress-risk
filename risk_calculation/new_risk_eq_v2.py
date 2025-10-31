@@ -121,14 +121,9 @@ def get_sports_heat_stress_curves(
             # print(
             #     f"Core temp - Brentq failed for {tdb=} {rh=} {tr=} {v=} {sport_id=}: {e}"
             # )
-            # t_extreme = max_t_high
 
-    if np.isnan(t_extreme):
-        print(f"Extreme temp - failed for {tdb=} {rh=} {tr=} {v=} {sport_id=}")
-        raise ValueError
-    if np.isnan(t_medium):
-        print(f"Medium temp - failed for {tdb=} {rh=} {tr=} {v=} {sport_id=}")
-        raise ValueError
+            if not np.isnan(t_medium):
+                t_extreme = max_t_high
 
     t_high = (
         (t_medium + t_extreme) / 2
@@ -266,7 +261,7 @@ def plot_one_sport_heat_stress_curve(sport="rowing"):
 
 
 if __name__ == "__main__":
-    risk = get_sports_heat_stress_curves(tdb=39, tr=39, rh=50, sport_id="basketball")
+    risk = get_sports_heat_stress_curves(tdb=t, tr=t, rh=rh, sport_id="archery")
     print(risk)
     # compare_sma_v2_with_new_risk_eq()
     # plot_one_sport_heat_stress_curve(sport="rowing")
