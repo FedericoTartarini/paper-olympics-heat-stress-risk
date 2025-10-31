@@ -212,6 +212,8 @@ if __name__ == "__main__":
 
     for sport in sports_dict.keys():
         print(f"--- Sport: {sport} ---")
+        if sport == "fishing":
+            continue
         check_calculate_risk_value_grid(
             lat=-33.8688,
             lon=151.2093,
