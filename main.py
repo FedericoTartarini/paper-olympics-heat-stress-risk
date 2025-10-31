@@ -123,6 +123,7 @@ def check_calculate_risk_value(
         wind=wind,
     )
     print(f"Risk Value: {risk_value}")
+    return risk_value
 
 
 def check_calculate_risk_value_grid(
@@ -156,6 +157,7 @@ def check_calculate_risk_value_grid(
     ax.set_title(f"Heat Stress Risk for {sport_id} at {time_stamp} in Sydney")
     ax.set_xlabel("Dry-Bulb Temperature (°C)")
     ax.set_ylabel("Relative Humidity (%)")
+    plt.savefig(f"figures/matrix_{sport_id}_wind_{wind}.png", dpi=300)
     plt.show()
 
 
@@ -208,6 +210,16 @@ if __name__ == "__main__":
         tdb=30.0,
         rh=60.0,
         sport_id="soccer",
+    )
+
+    check_calculate_risk_value(
+        lat=34.5288,
+        lon=69.2093,
+        tz="Asia/Kabul",
+        time_stamp="1983-08-16 15:00:00",
+        tdb=40.0,
+        rh=60.0,
+        sport_id="equestrian",
     )
 
     for sport in sports_dict.keys():
