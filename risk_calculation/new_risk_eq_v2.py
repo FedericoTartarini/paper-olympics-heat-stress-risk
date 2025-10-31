@@ -153,7 +153,7 @@ def get_sports_heat_stress_curves(
 
 def compare_sma_v2_with_new_risk_eq():
     # for sport in sports_dict.keys():
-    sport = "soccer"
+    sport = "rowing"
     tg_delta = 8  # tg - tdb
     v = sports_dict[sport]["wind_low"]
 
@@ -217,8 +217,42 @@ def compare_sma_v2_with_new_risk_eq():
     plt.show()
 
 
+def plot_one_sport_heat_stress_curve(sport="rowing"):
+    tr_delta = 8  # tg - tdb
+    v = sports_dict[sport]["wind_high"]
+
+    results = []
+
+    for t, rh in product(np.arange(26, 45, 0.5), range(0, 101, 1)):
+        # print(f"Calculating for {sport=} {t=} {rh=} {v=}")
+        tr = tr_delta + t
+        risk = get_sports_heat_stress_curves(tdb=t, tr=tr, rh=rh, v=v, sport_id=sport)
+        results.append([t, rh, tr_delta, v, risk])
+
+    df_new = pd.DataFrame(results, columns=["tdb", "rh", "tg", "v", "risk"])
+
+    f, axs = plt.subplots(1, 1, figsize=(7, 7), sharex=True, sharey=True)
+
+    df_pivot = df_new.pivot(index="rh", columns="tdb", values="risk")
+    df_pivot.sort_index(ascending=False, inplace=True)
+    sns.heatmap(df_pivot, annot=False, cmap="viridis", ax=axs, vmin=0, vmax=3)
+
+    axs.set_title(
+        f"{sports_dict[sport]['sport']} - Heat stress risk (PHS model)", fontsize=14
+    )
+    axs.set_ylabel("Relative Humidity (%)", fontsize=12)
+    axs.set_xlabel("Air Temperature (°C)", fontsize=12)
+    plt.tight_layout()
+    plt.savefig(
+        f"./figures/{sport}_v={v}_tr_delta={tr_delta}.png",
+        dpi=300,
+    )
+    plt.show()
+
+
 if __name__ == "__main__":
-    compare_sma_v2_with_new_risk_eq()
+    # compare_sma_v2_with_new_risk_eq()
+    plot_one_sport_heat_stress_curve(sport="rowing")
 
     # # get the lowest wind speed across all sports
     # min_wind_speed = max(
